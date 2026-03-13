@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Beauty Parlour Dialer</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f4f6f9;
+padding:40px;
+text-align:center;
+}
+
+.card{
+background:white;
+max-width:600px;
+margin:auto;
+padding:30px;
+border-radius:10px;
+box-shadow:0 10px 20px rgba(0,0,0,0.1);
+}
+
+button{
+padding:10px 18px;
+margin:5px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+font-size:14px;
+}
+
+.call{background:#2ecc71;color:white}
+.prev{background:#95a5a6;color:white}
+.next{background:#3498db;color:white}
+
+.called{background:#27ae60;color:white}
+.notint{background:#e74c3c;color:white}
+.follow{background:#f39c12;color:white}
+
+.field{
+margin:6px 0;
+}
+
+.status{
+margin-top:15px;
+font-weight:bold;
+font-size:18px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<h2 id="leadname"></h2>
+
+<div class="field">📞 <span id="phone"></span></div>
+<div class="field">⭐ Rating: <span id="rating"></span></div>
+<div class="field">📝 Reviews: <span id="reviews"></span></div>
+<div class="field">🌐 <a id="website" target="_blank"></a></div>
+<div class="field">📍 <span id="address"></span></div>
+<div class="field">🗺 <a id="maps" target="_blank">Open Maps</a></div>
+
+<br>
+
+<a id="callbtn"><button class="call">Call</button></a>
+
+<br><br>
+
+<button class="prev" onclick="prevLead()">Prev</button>
+<button class="next" onclick="nextLead()">Next</button>
+
+<br><br>
+
+<button class="called" onclick="setStatus('Called')">Called</button>
+<button class="notint" onclick="setStatus('Not Interested')">Not Interested</button>
+<button class="follow" onclick="setStatus('Follow Up')">Follow Up</button>
+
+<div class="status" id="status"></div>
+<div id="progress"></div>
+
+</div>
+
+<script>
+
+let leads = [
+  {
+    "Name": "Natural Glimpses",
+    "Rating": "4.8 stars",
+    "Reviews": 288,
+    "Phone": "090603 55462",
+    "Website": "https://naturalglimpses.dailysoftwarepoint.online/",
+    "Address": "1st floor, Bansal Landmark, near Antu Chowk, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/Natural+Glimpses/@23.3982245,85.3104065,14z/data=!3m1!5s0x39f4e147f27784e5:0xc3286e62e95467fd!4m10!1m2!2m1!1sbeauty+parlour+near+morabadi+ranchi!3m6!1s0xa6d10cba179af837:0xe52e8da751fa7965!8m2!3d23.3954372!4d85.335559!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbpoBI0NoWkRTVWhOTUc5blMwVkpRMEZuU1VORWFGQkxaMEpuRUFF4AEA-gEECCQQOQ!16s%2Fg%2F11tn67x01h?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Beauty Connect Salon",
+    "Rating": "4.9 stars",
+    "Reviews": 163,
+    "Phone": "072092 15666",
+    "Website": "",
+    "Address": "Second Floor , PM Mall, Near Prahlad Enclave, Chirundi, Chowk, Morabadi Rd, above Reliance Smart Point, Ranchi, Jharkhand 834006",
+    "Maps URL": "https://www.google.com/maps/place/Beauty+Connect+Salon/@23.3982245,85.3104065,14z/data=!4m10!1m2!2m1!1sbeauty+parlour+near+morabadi+ranchi!3m6!1s0x39f4e7fc8b42801b:0x4021ff70927e0604!8m2!3d23.4119823!4d85.3423059!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbpoBI0NoWkRTVWhOTUc5blMwVkpRMEZuU1VOSWNWQllTRVYzRUFF4AEA-gEECFkQSg!16s%2Fg%2F11vyhd5vjm?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Magmoon Unisex Salon",
+    "Rating": "4.6 stars",
+    "Reviews": 269,
+    "Phone": "094311 16412",
+    "Website": "",
+    "Address": "1st Floor, ICICI Bank, Morabadi Rd, Soren Kunj, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/Magmoon+Unisex+Salon/@23.3982245,85.3104065,14z/data=!4m10!1m2!2m1!1sbeauty+parlour+near+morabadi+ranchi!3m6!1s0x39f4e16de061df3b:0x89245e7cd93db503!8m2!3d23.3936402!4d85.3338641!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbpoBJENoZERTVWhOTUc5blMwVkpRMEZuU1VSS2NsQlhlR3hSUlJBQuABAPoBBAgAEEc!16s%2Fg%2F11f7by_j__?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Bio Barber",
+    "Rating": "4.6 stars",
+    "Reviews": 40,
+    "Phone": "099558 89026",
+    "Website": "https://www.instagram.com/biobarber01?igsh=MXR1Zmpzbjg1M3FlbA==",
+    "Address": "Antu Chowk, 1st Floor, Panchratna Avenue, Tagore Hill Rd, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/Bio+Barber/@23.3982245,85.3104065,14z/data=!4m10!1m2!2m1!1sbeauty+parlour+near+morabadi+ranchi!3m6!1s0x39f4e15772a56bb9:0xe52a1463a2390f41!8m2!3d23.3954372!4d85.335559!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbpoBRENpOURRVWxSUVVOdlpFTm9kSGxqUmpsdlQyeHJNMkpXV2xoWFZ6bEdWMnM0ZW1NeFRtNVZSbVEwVGpKMFZtTnVZeEFC4AEA-gEECFAQKw!16s%2Fg%2F11ylqks1_3?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "ID Salon Morabadi",
+    "Rating": "4.9 stars",
+    "Reviews": 34,
+    "Phone": "",
+    "Website": "",
+    "Address": "near Sangam Garden, Tetartoli, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/ID+Salon+Morabadi/@23.3982245,85.3104065,14z/data=!4m10!1m2!2m1!1sbeauty+parlour+near+morabadi+ranchi!3m6!1s0x39f4e158cc0483c7:0x35b85f2a492f8412!8m2!3d23.393879!4d85.32778!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbpoBRENpOURRVWxSUVVOdlpFTm9kSGxqUmpsdlQyeENTV0ZXV2pGVU1XeHlVMVU1ZVZadFRsUmpNbkJKVmxWT05tUlhZeEFC4AEA-gEECAAQTA!16s%2Fg%2F11w8s506q9?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "The Art of Beauty ladies salon",
+    "Rating": "5.0 stars",
+    "Reviews": 45,
+    "Phone": "072093 41693",
+    "Website": "",
+    "Address": "Jagatpuram Colony, Kanke Rd, near Durga Mandap, Adalhatu Colony, Morabadi, Ranchi, Jharkhand 834006",
+    "Maps URL": "https://www.google.com/maps/place/The+Art+of+Beauty+ladies+salon/@23.3982245,85.3104065,14z/data=!4m10!1m2!2m1!1sbeauty+parlour+near+morabadi+ranchi!3m6!1s0x39f4e6d039671d89:0x21d7ea2fe55d4f9f!8m2!3d23.4177593!4d85.323004!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbpoBRENpOURRVWxSUVVOdlpFTm9kSGxqUmpsdlQyMHhRMVZyVm5CaGJFRTFVek5HTTFwRmFFdFRWVmt5VW10S2NsRllZeEFC4AEA-gEECAAQRQ!16s%2Fg%2F11l6tmk5fn?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Beauty Connect Salon",
+    "Rating": "4.9 stars",
+    "Reviews": 381,
+    "Phone": "091029 99954",
+    "Website": "",
+    "Address": "1st floor, B B Complex, Kanke Rd, near backyard restaurant, Gonda Town, CMPDI Complex, Gandhi Nagar, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/Beauty+Connect+Salon/@23.3994322,85.2768286,14z/data=!4m10!1m2!2m1!1sbeauty+parlour+near+morabadi+ranchi!3m6!1s0x39f4e1d3cf579f89:0x1eb5ff95c0ff91b5!8m2!3d23.3994322!4d85.3149374!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbpoBRENpOURRVWxSUVVOdlpFTm9kSGxqUmpsdlQyNWtNMk5IZEVwVFJUbDVXakZTTkUwd01VWlRiWGd5WWpOa1NGRnVZeEFC4AEA-gEECAAQQw!16s%2Fg%2F11g233fll4?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Hair Mechanic Family Salon | Best Unisex Salon in Morabadi Ranchi| Hairdresser| MakeupArtist",
+    "Rating": "5.0 stars",
+    "Reviews": 42,
+    "Phone": "079922 00358",
+    "Website": "https://www.instagram.com/hair_mechanic_family_salon?igsh=MWx3OGRnZXl6NnVtdw==",
+    "Address": "2nd floor, SMM COMPLEX, Morabadi, Boreya, Ranchi, Jharkhand 834006",
+    "Maps URL": "https://www.google.com/maps/place/Hair+Mechanic+Family+Salon+%7C+Best+Unisex+Salon+in+Morabadi+Ranchi%7C+Hairdresser%7C+MakeupArtist/@23.4206828,85.308966,14z/data=!4m10!1m2!2m1!1sbeauty+parlour+near+morabadi+ranchi!3m6!1s0x39f4e7007e8cbfbb:0xf65d2b208832baa4!8m2!3d23.4206828!4d85.3470748!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBEnVuaXNleF9oYWlyZHJlc3NlcpoBRENpOURRVWxSUVVOdlpFTm9kSGxqUmpsdlQycE9OR050ZUVoWFIyUktVMVpPYWxaWFNsUmFiRnBKVDBSc1QxRXdSUkFC4AEA-gEECAAQTA!16s%2Fg%2F11md9t4mmb?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Bellissimo beauty salon, bridal studio and Academy",
+    "Rating": "4.9 stars",
+    "Reviews": 9,
+    "Phone": "",
+    "Website": "",
+    "Address": "Shop no 10, Bimla Enclave, Antu chowk, above HDFC Bank, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/Bellissimo+beauty+salon,+bridal+studio+and+Academy/@23.4206828,85.308966,14z/data=!4m10!1m2!2m1!1sbeauty+parlour+near+morabadi+ranchi!3m6!1s0x39f4e17eeb2c8a23:0xb76d4812c39bd940!8m2!3d23.3959339!4d85.3357865!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbuABAA!16s%2Fg%2F11xccrkzsh?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Showstopper Bridal Salon & Makeup Studio",
+    "Rating": "4.9 stars",
+    "Reviews": 163,
+    "Phone": "073384 37905",
+    "Website": "https://showstopperbysimrans.com/",
+    "Address": "21/B, Harihar Singh Road, Soren Kunj, Morabadi, Ranchi, Jharkhand 834009",
+    "Maps URL": "https://www.google.com/maps/place/Showstopper+Bridal+Salon+%26+Makeup+Studio/@23.4206828,85.308966,14z/data=!4m10!1m2!2m1!1sbeauty+parlour+near+morabadi+ranchi!3m6!1s0x39f4e1e344870209:0x937194826fbd486c!8m2!3d23.3933226!4d85.3361801!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDW1ha2V1cF9hcnRpc3SaASNDaFpEU1VoTk1HOW5TMFZKUTBGblRVTlpPSE15V1VKUkVBReABAPoBBQitARBK!16s%2Fg%2F11l5wj1m_8?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Anupama Beauty Salon",
+    "Rating": "4.9 stars",
+    "Reviews": 11,
+    "Phone": "",
+    "Website": "https://www.instagram.com/anupamasalonranchi/",
+    "Address": "1st Floor, Kaushik Properties, Tagore Hill Rd, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/Anupama+Beauty+Salon/@23.4206828,85.308966,14z/data=!3m1!5s0x39f4e147d9294a11:0x4466d0bf52b1ab76!4m10!1m2!2m1!1sbeauty+parlour+near+morabadi+ranchi!3m6!1s0x39f4e12bed47b1b5:0x1b5c425cb916a617!8m2!3d23.3961518!4d85.3358612!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbpoBJENoZERTVWhOTUc5blMwVkpRMEZuU1VSQ2IyVTNPVzFuUlJBQuABAPoBBAgAEA8!16s%2Fg%2F11rlz_88jf?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Dream World Beauty Parlour & Academy",
+    "Rating": "4.8 stars",
+    "Reviews": 418,
+    "Phone": "062019 51314",
+    "Website": "https://youtube.com/@ranusdreamworld8974?si=3v4KUOqsu_aCQUeS",
+    "Address": "Hariom Tower, Ground floor LL, 17, Circular Rd, Ranchi, Jharkhand 834001",
+    "Maps URL": "https://www.google.com/maps/place/Dream+World+Beauty+Parlour+%26+Academy/@23.3756902,85.2951727,14z/data=!4m10!1m2!2m1!1sbeauty+parlour+near+morabadi+ranchi!3m6!1s0x39f4e1b1998b4b87:0x9d3cd9b392609afb!8m2!3d23.3756902!4d85.3332815!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbuABAA!16s%2Fg%2F11mtrpgs9j?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Volume Salon - Best Hair and Beauty Salon in Ranchi",
+    "Rating": "5.0 stars",
+    "Reviews": 17,
+    "Phone": "084343 00344",
+    "Website": "",
+    "Address": "1st floor, Plot No 528, above Gauri brides, opposite IMS Management College, Sarna Toli, Hatma, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/Volume+Salon+-+Best+Hair+and+Beauty+Salon+in+Ranchi/@23.3756902,85.2951727,14z/data=!4m10!1m2!2m1!1sbeauty+parlour+near+morabadi+ranchi!3m6!1s0x39f4e1e80e1149c1:0xa915560f0260e639!8m2!3d23.3884796!4d85.3195992!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBEnVuaXNleF9oYWlyZHJlc3NlcpoBRENpOURRVWxSUVVOdlpFTm9kSGxqUmpsdlQyc3hTVll4V2xKU1dGWnNZVzB4V1dOVk1XNWxSa3A0VVRKS1RrOUhZeEFC4AEA-gEECAAQPA!16s%2Fg%2F11zkmn0wsf?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "MORÉS : the beauty destination (women's salon)",
+    "Rating": "4.9 stars",
+    "Reviews": 139,
+    "Phone": "081026 03450",
+    "Website": "",
+    "Address": "Jagatpuram Colony, Kanke Rd, opposite Gokul Restaurant, Ranchi, Jharkhand 834006",
+    "Maps URL": "https://www.google.com/maps/place/MOR%C3%89S+:+the+beauty+destination+(women's+salon)/@23.4178606,85.2795452,14z/data=!4m10!1m2!2m1!1sbeauty+parlour+near+morabadi+ranchi!3m6!1s0x39f4e70813e761b1:0xe2f712bfb4e6e57a!8m2!3d23.4178606!4d85.317654!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbpoBRENpOURRVWxSUVVOdlpFTm9kSGxqUmpsdlQyMUtiMDVWV2sxVFYwWkVXV3BOTVV4VmJGbFBSVW93VkVaUmQwMUlZeEFC4AEA-gEECFcQOQ!16s%2Fg%2F11s9ggqrp5?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Hair tips devrajiv",
+    "Rating": "5.0 stars",
+    "Reviews": 25,
+    "Phone": "098354 65949",
+    "Website": "",
+    "Address": "Magmoon Unisex Salon, Soren Kunj, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/Hair+tips+devrajiv/@23.4178606,85.2795452,14z/data=!4m10!1m2!2m1!1sbeauty+parlour+near+morabadi+ranchi!3m6!1s0x39f4e1e9019f63e7:0xec43251670ca144b!8m2!3d23.3936402!4d85.3338641!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBEnVuaXNleF9oYWlyZHJlc3NlcpoBJENoZERTVWhOTUc5blMwVkpRMEZuVFVOQmVVMDJWWHAzUlJBQuABAPoBBAgAEC8!16s%2Fg%2F11rfb4chzb?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "VR Makeover by Ekta Roy",
+    "Rating": "5.0 stars",
+    "Reviews": 23,
+    "Phone": "",
+    "Website": "",
+    "Address": "Sabir Complex, Harihar Singh Road, Morabadi, Ranchi, Jharkhand 834009",
+    "Maps URL": "https://www.google.com/maps/place/VR+Makeover+by+Ekta+Roy/@23.4178606,85.2795452,14z/data=!4m10!1m2!2m1!1sbeauty+parlour+near+morabadi+ranchi!3m6!1s0x39f4e10057edce9d:0x58bb8b433382bd86!8m2!3d23.3928493!4d85.3352111!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbpoBI0NoWkRTVWhOTUc5blMwVkpRMEZuU1VOMmJtOVFkRk5SRUFF4AEA-gEECAAQKw!16s%2Fg%2F11wp7b9456?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Grazia Beauty Salon n Spa",
+    "Rating": "3.9 stars",
+    "Reviews": 16,
+    "Phone": "082928 17888",
+    "Website": "https://www.justdial.com/Ranchi/Grazia-Beauty-Salon-And-Spa-Near-Bank-Of-India-Morabadi/0651PX651-X651-140506134114-C9X9_BZDET",
+    "Address": "98WP+RPJ, Tagore Hill, Rod, near Reliance Fresh, Tetartoli, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/Grazia+Beauty+Salon+n+Spa/@23.4178606,85.2795452,14z/data=!4m10!1m2!2m1!1sbeauty+parlour+near+morabadi+ranchi!3m6!1s0x39f4e1f90e137871:0xf016dba1a7e7df26!8m2!3d23.3992689!4d85.338!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbuABAA!16s%2Fg%2F11f66qm4m6?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Neelu Koya Makeup Studio Salon & Academy",
+    "Rating": "4.8 stars",
+    "Reviews": 16,
+    "Phone": "093040 02202",
+    "Website": "",
+    "Address": "Karamtoli, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/Neelu+Koya+Makeup+Studio+Salon+%26+Academy/@23.4178606,85.2795452,14z/data=!4m10!1m2!2m1!1sbeauty+parlour+near+morabadi+ranchi!3m6!1s0x39f4e1003e0348e7:0x688703fb3f5521ac!8m2!3d23.3890139!4d85.3316779!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDW1ha2V1cF9hcnRpc3TgAQA!16s%2Fg%2F11y5_sgtwc?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "STARDOM BY ASHPREET KAUR",
+    "Rating": "4.8 stars",
+    "Reviews": 202,
+    "Phone": "092412 40217",
+    "Website": "https://stardombyashpreetkaur.com/",
+    "Address": "34, Burdwan Compound, Lalpur, Ranchi, Jharkhand 834001",
+    "Maps URL": "https://www.google.com/maps/place/STARDOM+BY+ASHPREET+KAUR/@23.3780128,85.2984843,14z/data=!4m10!1m2!2m1!1sbeauty+parlour+near+morabadi+ranchi!3m6!1s0x39f4e1ca2daf00a1:0x99fe9e23e296a3d0!8m2!3d23.3780128!4d85.3365931!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbuABAA!16s%2Fg%2F11vjj__5ld?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Bedazzle Professional Salon and Therapy Centre",
+    "Rating": "4.4 stars",
+    "Reviews": 18,
+    "Phone": "084340 48998",
+    "Website": "",
+    "Address": "First Floor Shop No - 5, Bansal Landmark, near Antu Chowk, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/Bedazzle+Professional+Salon+and+Therapy+Centre/@23.3780128,85.2984843,14z/data=!3m1!5s0x39f4e147ecd6adb1:0x218cc903e20349f2!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e10bb15ee757:0x6f1624545ac2b2cc!8m2!3d23.3954751!4d85.3353255!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBE3NwYV9hbmRfaGVhbHRoX2NsdWKaASNDaFpEU1VoTk1HOW5TMFZKUTBGblNVTnlNSE5NTkZGbkVBReABAPoBBAgAECc!16s%2Fg%2F11vkf38w_t?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Glow heaven ladies beauty parlour",
+    "Rating": "5.0 stars",
+    "Reviews": 6,
+    "Phone": "062011 13294",
+    "Website": "https://sites.google.com/view/glowheavenparlour/home",
+    "Address": "Morabadi, Boreya, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/Glow+heaven+ladies+beauty+parlour/@23.4239881,85.3102553,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e5c2abddd0ab:0xa6b9e5af1f32d4af!8m2!3d23.4239881!4d85.3483641!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbuABAA!16s%2Fg%2F11yshsmbwy?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "AR Salon",
+    "Rating": "4.7 stars",
+    "Reviews": 556,
+    "Phone": "070330 96767",
+    "Website": "https://arsalon.in/",
+    "Address": "Near, Kanke Rd, Rock Garden, Gandhi Nagar, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/AR+Salon/@23.4013315,85.2765947,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e12a1f36e18d:0xd441e73fd959a38e!8m2!3d23.4013315!4d85.3147035!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbuABAA!16s%2Fg%2F11gg67pcrd?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "ARS Wellness Center - Kanke Road, Ranchi",
+    "Rating": "5.0 stars",
+    "Reviews": 25,
+    "Phone": "",
+    "Website": "",
+    "Address": "2209, Kanke Rd, near Premsons motor, behind Honda showroom, Indira Nagar Colony, Indrapuri Colony, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/ARS+Wellness+Center+-+Kanke+Road,+Ranchi/@23.4013315,85.2765947,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e1002ba15a25:0x204cc197c07a044d!8m2!3d23.3882919!4d85.314456!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbuABAA!16s%2Fg%2F11ln3258z3?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "International beauty salon Hair,skin,Meakup studio",
+    "Rating": "4.1 stars",
+    "Reviews": 42,
+    "Phone": "094304 70222",
+    "Website": "",
+    "Address": "Near RIMS, Medical Chowk Shop No.G-4, Ground Floor, Orchid Mall, Bariatu, Ranchi, Jharkhand 834009",
+    "Maps URL": "https://www.google.com/maps/place/International+beauty+salon+Hair,skin,Meakup+studio/@23.391904,85.3079968,14z/data=!3m1!5s0x39f4e15b6948a03f:0x5ec0359c69d3d079!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e15b6bc90699:0xc9cbbd55dd4ab3cf!8m2!3d23.391904!4d85.3461056!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbuABAA!16s%2Fg%2F11c3k984p_?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "RS Unisex Salon & Makeup Studio",
+    "Rating": "5.0 stars",
+    "Reviews": 9,
+    "Phone": "",
+    "Website": "",
+    "Address": "SN Tower, Sidhu Kanhu Park Road, Road, near CM House, Ranchi University, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/RS+Unisex+Salon+%26+Makeup+Studio/@23.391904,85.3079968,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e123df99ef2f:0xf73adc97e9dda907!8m2!3d23.3883478!4d85.3190156!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDW1ha2V1cF9hcnRpc3TgAQA!16s%2Fg%2F11xrlwm0y3?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Naaj Beauty Parlour",
+    "Rating": "3.0 stars",
+    "Reviews": 3,
+    "Phone": "093346 57535",
+    "Website": "",
+    "Address": "98WP+77X, Antu Chowk, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/Naaj+Beauty+Parlour/@23.391904,85.3079968,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e147c3173087:0x8f6b59c641c11a61!8m2!3d23.3957468!4d85.3357203!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbpoBI0NoWkRTVWhOTUc5blMwVkpRMEZuU1VONGFuUnRiMGRCRUFF4AEA-gEECAAQIw!16s%2Fg%2F11btx6smlf?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "NAINCY NAYAK MAKEOVERS",
+    "Rating": "4.9 stars",
+    "Reviews": 20,
+    "Phone": "087701 13370",
+    "Website": "https://sites.google.com/view/naincy-nayak-makeovers/home",
+    "Address": "Rachit height, infront of Maa Ram Pyari Superspeslity hospital, Harihar Singh Road, Ranchi, Jharkhand 834009",
+    "Maps URL": "https://www.google.com/maps/place/NAINCY+NAYAK+MAKEOVERS/@23.391904,85.3079968,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e16e3633d06f:0x3b1dca3f0835b21b!8m2!3d23.3910172!4d85.3436205!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDW1ha2V1cF9hcnRpc3SaAURDaTlEUVVsUlFVTnZaRU5vZEhsalJqbHZUMjVuTVZFeFZrcFdNazVDWTJ4YVRsa3pXbGRoYW1oVlVXczFUMVpIWXhBQuABAPoBBAgAEDY!16s%2Fg%2F11krkvtv8p?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Id Salon Ranchi",
+    "Rating": "4.6 stars",
+    "Reviews": 138,
+    "Phone": "090313 74999",
+    "Website": "https://idsalon.in/",
+    "Address": "Astor Green, Kanke Rd, Chandni Chowk, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/Id+Salon+Ranchi/@23.4094372,85.2773654,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e7f08475be47:0x6a370d22084a3247!8m2!3d23.4094372!4d85.3154742!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDW1ha2V1cF9hcnRpc3TgAQA!16s%2Fg%2F11jzmnxdy3?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Glamour Ladies Beauty Salon",
+    "Rating": "5.0 stars",
+    "Reviews": 1,
+    "Phone": "072099 28135",
+    "Website": "",
+    "Address": "Jagatpuram Colony, Kanke Rd, Adalhatu Colony, Morabadi, Ranchi, Jharkhand 834006",
+    "Maps URL": "https://www.google.com/maps/place/Glamour+Ladies+Beauty+Salon/@23.4094372,85.2773654,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e7c899f34b17:0xace1ed1156a1b79!8m2!3d23.4181484!4d85.3264989!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbuABAA!16s%2Fg%2F11y3drv310?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Roshani Ladies Beauty Parlor",
+    "Rating": "3.7 stars",
+    "Reviews": 3,
+    "Phone": "081029 03497",
+    "Website": "",
+    "Address": "gali Antu Chowk, near Lakhraj Gali, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/Roshani+Ladies+Beauty+Parlor/@23.4094372,85.2773654,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e147c0ec27f3:0xcd5d0c6ecb3bf709!8m2!3d23.3949965!4d85.335805!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbpoBI0NoWkRTVWhOTUc5blMwVkpRMEZuU1VSQ09IVlBhV05SRUFF4AEA-gEECAAQEQ!16s%2Fg%2F11btx6pntc?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Style Men's Parlour",
+    "Rating": "3.3 stars",
+    "Reviews": 23,
+    "Phone": "075490 19145",
+    "Website": "",
+    "Address": "98WP+97G, Tagore Hill, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/Style+Men's+Parlour/@23.4094372,85.2773654,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e148ede49a19:0xecd253404ff6a9c2!8m2!3d23.3959271!4d85.3357138!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBCmhhaXJfc2Fsb27gAQA!16s%2Fg%2F11bccghxrw?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Dr. Haror's Wellness",
+    "Rating": "4.7 stars",
+    "Reviews": 186,
+    "Phone": "094296 93624",
+    "Website": "https://ranchi.drharorswellness.com/?utm_source=google&utm_medium=gmb&utm_campaign=gmb_click",
+    "Address": "Second Floor, The Ikon, Unit Number 204, 207, 208, 209, Tagore Hill Rd, Tetartoli, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/Dr.+Haror's+Wellness/@23.4094372,85.2773654,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e10a2c9e2c53:0x1b4d2cd1e95d6291!8m2!3d23.3968613!4d85.3359347!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDWRlcm1hdG9sb2dpc3SaAURDaTlEUVVsUlFVTnZaRU5vZEhsalJqbHZUMjVvZEUwd2RIaFdWVkYwVlVjeGNWSkhSVE5YUjJoR1pERndVbFpHUlJBQuABAPoBBAhTEEU!16s%2Fg%2F11xg5ng9dl?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Lifestyle exclusive beauty salon",
+    "Rating": "5.0 stars",
+    "Reviews": 9,
+    "Phone": "093042 37501",
+    "Website": "",
+    "Address": "maa Munni Complex, opp. Vrindavan Colony, Chiraundi, Morabadi, Boreya, Ranchi, Jharkhand 834006",
+    "Maps URL": "https://www.google.com/maps/place/Lifestyle+exclusive+beauty+salon/@23.4094372,85.2773654,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e5d030fcee87:0xcd7c9a8553a4aeed!8m2!3d23.4137852!4d85.3428936!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbpoBI0NoWkRTVWhOTUc5blMwVkpRMEZuU1VOeWFIWk1Za2xuRUFF4AEA-gEECAAQRA!16s%2Fg%2F11y5ywx2m4?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "The Jawed Habib Salon",
+    "Rating": "4.8 stars",
+    "Reviews": 609,
+    "Phone": "",
+    "Website": "",
+    "Address": "Plaza chowk, 1st Floor, Damyantika Complex, plaza chowk, East Jail Road, Ranchi, Jharkhand 834001",
+    "Maps URL": "https://www.google.com/maps/place/The+Jawed+Habib+Salon/@23.3718319,85.2933822,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e1c4462f8f6f:0xec501e910c5db52f!8m2!3d23.3718319!4d85.331491!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBEnVuaXNleF9oYWlyZHJlc3NlcuABAA!16s%2Fg%2F11q95jnzq4?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "CHEHRA- The Rising Beauty Parlour",
+    "Rating": "3.8 stars",
+    "Reviews": 4,
+    "Phone": "082943 68575",
+    "Website": "",
+    "Address": "1/x22, Chehra Beauty Parlour, Opp. Toppo Brothers' Complex, Near Bajaj, Showroom,, Chiraundi, Ranchi, Jharkhand 834006",
+    "Maps URL": "https://www.google.com/maps/place/CHEHRA-+The+Rising+Beauty+Parlour/@23.409034,85.3024092,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e6b348bdb947:0xb369aa2502c51c7a!8m2!3d23.409034!4d85.340518!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbuABAA!16s%2Fg%2F11f38yf4w0?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Silhouette Beauty salon",
+    "Rating": "4.7 stars",
+    "Reviews": 65,
+    "Phone": "090067 72535",
+    "Website": "https://silhouettesalon.in/",
+    "Address": "2nd floor, Lee Desire Complex, Circular Rd, Ranchi, Jharkhand 834001",
+    "Maps URL": "https://www.google.com/maps/place/Silhouette+Beauty+salon/@23.3764106,85.2956227,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e1133066ce43:0xc5bd14bf052ecbc!8m2!3d23.3764106!4d85.3337315!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbpoBI0NoWkRTVWhOTUc5blMwVkpRMEZuU1VOdWQyTTJVVXAzRUFF4AEA-gEECH4QOQ!16s%2Fg%2F11c3k6jp60?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Parlorpoint",
+    "Rating": "4.9 stars",
+    "Reviews": 68,
+    "Phone": "088773 06675",
+    "Website": "https://www.instagram.com/parlorpoint_com/",
+    "Address": "105, Alokapuri Apartment Rd, near H Square Mall, New Barhi Toli, Ranchi, Jharkhand 834001",
+    "Maps URL": "https://www.google.com/maps/place/Parlorpoint/@23.3764106,85.2956227,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e1d62defe15b:0xc0251d7574052775!8m2!3d23.3704093!4d85.3389273!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDW1ha2V1cF9hcnRpc3SaASNDaFpEU1VoTk1HOW5TMFZKUTBGblNVUlliV1pUV0U5M0VBReABAPoBBQiOAhAy!16s%2Fg%2F11fny_116v?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Fresh Look Ladies Beauty Parlour",
+    "Rating": "4.0 stars",
+    "Reviews": 1,
+    "Phone": "",
+    "Website": "",
+    "Address": "Antu Chowk, Janki Tower, Tagore Hill Rd, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/Fresh+Look+Ladies+Beauty+Parlour/@23.3764106,85.2956227,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e147e88a3aeb:0xc72837a2884cb863!8m2!3d23.3954372!4d85.335559!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbuABAA!16s%2Fg%2F11vwvnx_c9?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Naturals Salon",
+    "Rating": "4.5 stars",
+    "Reviews": 331,
+    "Phone": "073618 77787",
+    "Website": "https://salons.naturals.in/naturals-salon-beauty-salons-ahirtoli-ranchi-304391/Home?utm_source=locator&utm_medium=googleplaces",
+    "Address": "Shop No 102, Shanti Deep Complex Kutchery Chowk, Radium Rd, opposite Maharaja Hotel, Ahirtoli, Ranchi, Jharkhand 834001",
+    "Maps URL": "https://www.google.com/maps/place/Naturals+Salon/@23.3764106,85.2956227,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e14eced1e473:0x471c8edbb39fb631!8m2!3d23.3805635!4d85.325381!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbuABAA!16s%2Fg%2F11fct1bdzb?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Glossy Beauty Salon & Spa",
+    "Rating": "5.0 stars",
+    "Reviews": 2,
+    "Phone": "081023 99345",
+    "Website": "",
+    "Address": "Dhawan Nagar Road, Gandhi Nagar Colony, Jhirga Toli, Gandhi Nagar, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/Glossy+Beauty+Salon+%26+Spa/@23.4100601,85.2871881,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e7f3cacb9777:0xc7a3a5ef3c61a5!8m2!3d23.4100601!4d85.3252969!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbpoBI0NoWkRTVWhOTUc5blMwVkpRMEZuU1VOME1UY3pkRlozRUFF4AEA-gEECAAQMg!16s%2Fg%2F11rw9024df?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "ONE STOP UNISEX SALON",
+    "Rating": "1.0 stars",
+    "Reviews": 1,
+    "Phone": "",
+    "Website": "",
+    "Address": "G 2, BIMLA ENCLAVE, ANTU CHOWK, near HDFC BANK, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/ONE+STOP+UNISEX+SALON/@23.4100601,85.2871881,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e147de9d58fb:0xfb1742e299a3cba9!8m2!3d23.3960194!4d85.3356789!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbuABAA!16s%2Fg%2F11xysx6w06?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Belo Reflexia Salon for Her",
+    "Rating": "5.0 stars",
+    "Reviews": 4,
+    "Phone": "090067 72155",
+    "Website": "",
+    "Address": "Radium Rd, Ranchi University, Ahirtoli, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/Belo+Reflexia+Salon+for+Her/@23.4100601,85.2871881,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e117937adf0d:0x8fcc3f48880941e7!8m2!3d23.3824949!4d85.3248968!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbuABAA!16s%2Fg%2F11b7xyjfzq?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Dulhan Beauty Parlour",
+    "Rating": "5.0 stars",
+    "Reviews": 1,
+    "Phone": "087897 60689",
+    "Website": "http://www.dulhanbeautyparlour292929.com/",
+    "Address": "C86F+8WV, Gandhi Nagar, Shiv Shakti Nagar, Adalhatu Colony, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/Dulhan+Beauty+Parlour/@23.4100601,85.2871881,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e7bf7e0a0f05:0x68c36b83c77dd5a4!8m2!3d23.4108063!4d85.3248439!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBD2Nvc21ldGljc19zdG9yZeABAA!16s%2Fg%2F11sd718cnw?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Nisha Ladies Beauty Parlour",
+    "Rating": "4.0 stars",
+    "Reviews": 4,
+    "Phone": "076549 72344",
+    "Website": "",
+    "Address": "Virndavan Colony, Chiraundi, Morabadi, Ranchi, Jharkhand 834006",
+    "Maps URL": "https://www.google.com/maps/place/Nisha+Ladies+Beauty+Parlour/@23.4100601,85.2871881,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e7a95ed25f6b:0xe596b272c1bf3ac3!8m2!3d23.4136053!4d85.3431522!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBC21hc3NhZ2Vfc3BhmgFEQ2k5RFFVbFJRVU52WkVOb2RIbGpSamx2VDJ0S01XRXlUa1JTUjBaUldURmpkMDR4WkV0alIzUnRWMWhhTkdGclJSQULgAQD6AQQIABBJ!16s%2Fg%2F11y3vctgpj?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Scissor Magic'Saloon",
+    "Rating": "5.0 stars",
+    "Reviews": 4,
+    "Phone": "096533 05808",
+    "Website": "",
+    "Address": "Bariatu Rd, Nalanda Colony, Teter Toli, Morabadi, Ranchi, Jharkhand 834009",
+    "Maps URL": "https://www.google.com/maps/place/Scissor+Magic'Saloon/@23.4100601,85.2871881,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e11a6b2cdd95:0xe893d2f0db554854!8m2!3d23.3951372!4d85.3468549!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBCmhhaXJfc2Fsb27gAQA!16s%2Fg%2F11t9x4v3d4?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "The Perfectionist",
+    "Rating": "5.0 stars",
+    "Reviews": 3,
+    "Phone": "",
+    "Website": "",
+    "Address": "New Nalanda Colony , po+ ps, Bariatu, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/The+Perfectionist/@23.4100601,85.2871881,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e100f8bea6fd:0x4e0b37fb8af8197e!8m2!3d23.3960261!4d85.3450071!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbuABAA!16s%2Fg%2F11hf27mhkn?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Grace beauty salon at home",
+    "Rating": "5.0 stars",
+    "Reviews": 2,
+    "Phone": "092629 18077",
+    "Website": "",
+    "Address": "Karamtoli, Nagra Toli, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/Grace+beauty+salon+at+home/@23.4100601,85.2871881,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e16bb930585d:0xbe75a6e7cd6c738!8m2!3d23.3818748!4d85.3292907!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbuABAA!16s%2Fg%2F11yhhlzmdk?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Roop Vatika Ladies Parlour",
+    "Rating": "4.6 stars",
+    "Reviews": 138,
+    "Phone": "097981 71699",
+    "Website": "",
+    "Address": "Kanke Block Chowk, Arsanday, Ranchi, Jharkhand 834006",
+    "Maps URL": "https://www.google.com/maps/place/Roop+Vatika+Ladies+Parlour/@23.4100601,85.2871881,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e6c0291e8efb:0xe69ed98505d0a0c5!8m2!3d23.4316936!4d85.3322056!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbpoBRENpOURRVWxSUVVOdlpFTm9kSGxqUmpsdlQycENabGx0U25CUFJGWllWRlZHZGxJelJUUlZSWGd6VlZoR2FsRXpZeEFC4AEA-gEFCIEBEEI!16s%2Fg%2F11bt_jjzlx?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "The Kaya",
+    "Rating": "3.7 stars",
+    "Reviews": 260,
+    "Phone": "0651 256 3227",
+    "Website": "http://www.thekaya.com/",
+    "Address": "LL -01, Hari Om Tower, A & B, Circular Rd, P&T Colony, Lalpur, Ranchi, Jharkhand 834001",
+    "Maps URL": "https://www.google.com/maps/place/The+Kaya/@23.3756159,85.2954052,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e113287078ad:0x12761451c292db21!8m2!3d23.3756159!4d85.333514!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbpoBJENoZERTVWhOTUc5blMwVkpRMEZuU1VOMWNXTnVWRGhSUlJBQuABAPoBBAgAEDw!16s%2Fg%2F11b7yslxqq?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Terenz L'Oreal Professional mens salon hair cut & tattoo boys & girls",
+    "Rating": "4.3 stars",
+    "Reviews": 6,
+    "Phone": "080928 08443",
+    "Website": "",
+    "Address": "Bariatu Rd, Morabadi, Ranchi, Jharkhand 834009",
+    "Maps URL": "https://www.google.com/maps/place/Terenz+L'Oreal+Professional+mens+salon+hair+cut+%26+tattoo+boys+%26+girls/@23.3756159,85.2954052,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e17bab244277:0xfb34cc57d809a24e!8m2!3d23.3891856!4d85.3404027!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBC3RhdHRvb19zaG9w4AEA!16s%2Fg%2F11g4g2x04p?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Looks fashion Men salon",
+    "Rating": "5.0 stars",
+    "Reviews": 3,
+    "Phone": "",
+    "Website": "",
+    "Address": "Harihar Singh Road, Morabadi, Ranchi, Jharkhand 834009",
+    "Maps URL": "https://www.google.com/maps/place/Looks+fashion+Men+salon/@23.3756159,85.2954052,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e1253b76a90d:0xc00ace82c41001c6!8m2!3d23.3917059!4d85.339173!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBC2JhcmJlcl9zaG9wmgEkQ2hkRFNVaE5NRzluUzBWSlEwRm5TVVJQZWpkTE1YcEJSUkFC4AEA-gEECAAQGA!16s%2Fg%2F11qh93jcc0?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "New Seventh Heaven Men's Parlour",
+    "Rating": "3.7 stars",
+    "Reviews": 69,
+    "Phone": "098357 50004",
+    "Website": "",
+    "Address": "RD Building, Tagore Hill Rd, opposite Suvidha Banquets Hall, Soren Kunj, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/New+Seventh+Heaven+Men's+Parlour/@23.3756159,85.2954052,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e13878f34d05:0xab197f2d9eb56d56!8m2!3d23.3939112!4d85.3342066!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBCmhhaXJfc2Fsb26aASRDaGREU1VoTk1HOW5TMFZKUTBGblNVUlBjMkl0UWpCUlJSQULgAQD6AQQIABAs!16s%2Fg%2F11bv1m8syy?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "The Looks unisex salon",
+    "Rating": "5.0 stars",
+    "Reviews": 3,
+    "Phone": "076772 42936",
+    "Website": "",
+    "Address": "Chiraundi, Morabadi, Ranchi, Jharkhand 834006",
+    "Maps URL": "https://www.google.com/maps/place/The+Looks+unisex+salon/@23.4104595,85.2977623,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e7005d882195:0x7cf33dba8a0ae680!8m2!3d23.4104595!4d85.3358711!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBC2JhcmJlcl9zaG9wmgEkQ2hkRFNVaE5NRzluUzBWTmNqRmZkbll5YWkxZlNUbG5SUkFC4AEA-gEECAAQJg!16s%2Fg%2F11xgv93f73?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Trisha ladies beauty parlour",
+    "Rating": "3.7 stars 3 Reviews",
+    "Reviews": 3,
+    "Phone": "090318 11001",
+    "Website": "",
+    "Address": "Adalhatu Rd, Sarai Tand, New area, Morabadi, Ranchi, Jharkhand 834003",
+    "Maps URL": "https://www.google.com/maps/place/Trisha+ladies+beauty+parlour/@23.4104595,85.2977623,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e186c2b8004b:0x3742f8a1c1d3ef27!8m2!3d23.398097!4d85.3292546!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbuABAA!16s%2Fg%2F11ty6lf5vn?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Magic Touch BEAUTY PARLOUR",
+    "Rating": "",
+    "Reviews": "",
+    "Phone": "",
+    "Website": "",
+    "Address": "98VQ+429, Harihar Singh Road, Soren Kunj, Morabadi, Ranchi, Jharkhand 834009",
+    "Maps URL": "https://www.google.com/maps/place/Magic+Touch+BEAUTY+PARLOUR/@23.4104595,85.2977623,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e146f049b94b:0xeddbc3c8af92210f!8m2!3d23.3927772!4d85.3376127!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbuABAA!16s%2Fg%2F11xvyj1krk?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Madhuri Makeover",
+    "Rating": "4.7 stars",
+    "Reviews": 7,
+    "Phone": "062913 12118",
+    "Website": "",
+    "Address": "Near Tonte Chowk Devi Mandap Road Adalhatu, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/Madhuri+Makeover/@23.4104595,85.2977623,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e7bbf87832ef:0x4792fcc347f698da!8m2!3d23.4107916!4d85.3308201!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBCmhhaXJfc2Fsb26aASRDaGREU1VoTk1HOW5TMFZKUTBGblNVTm9ia3AyTkRkM1JSQULgAQD6AQUIpAIQMw!16s%2Fg%2F11tk9hkdwm?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Body Massage",
+    "Rating": "5.0 stars",
+    "Reviews": 148,
+    "Phone": "",
+    "Website": "",
+    "Address": "98WH+CW5, Tetartoli, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/Body+Massage/@23.4104595,85.2977623,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e10072b04b57:0x1875ab63a24e7a91!8m2!3d23.3961127!4d85.3300384!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBEW1hc3NhZ2VfdGhlcmFwaXN0mgFEQ2k5RFFVbFJRVU52WkVOb2RIbGpSamx2VDI1b2VXSkVVWFJVVkVwcllWaEJNRlpyUlhSTlZURTFXVEprTkU5SVl4QULgAQD6AQQIABAz!16s%2Fg%2F11yk90lfs8?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Femina Ladies Beauty Parlour And Shop",
+    "Rating": "4.6 stars",
+    "Reviews": 34,
+    "Phone": "089867 76863",
+    "Website": "",
+    "Address": "Cheshire Home Rd, near Puja Shree Banquet HAll, Rani Bagan, Bariatu, Ranchi, Jharkhand 834009",
+    "Maps URL": "https://www.google.com/maps/place/Femina+Ladies+Beauty+Parlour+And+Shop/@23.4104595,85.2977623,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e3fab5749343:0x4ba772c9d4421f68!8m2!3d23.3973781!4d85.3640063!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbpoBI0NoWkRTVWhOTUc5blMwVkpRMEZuU1VONGFWbFhhRWgzRUFF4AEA-gEECAAQNw!16s%2Fg%2F11c3k9dcp8?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Saloon for Men",
+    "Rating": "2.0 stars",
+    "Reviews": 4,
+    "Phone": "082101 71202",
+    "Website": "http://www.deepaksaloonranchi.com/",
+    "Address": "Deepak saloon, near chacha pratha Medical chowk, Bariatu, Ranchi, Jharkhand 834009",
+    "Maps URL": "https://www.google.com/maps/place/Saloon+for+Men/@23.4104595,85.2977623,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e16cee96fcd3:0xa70566aedbc78c7f!8m2!3d23.3923391!4d85.3467499!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbuABAA!16s%2Fg%2F11rvdd_p4l?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "D&D Beauty Professional Salon",
+    "Rating": "4.8 stars",
+    "Reviews": 163,
+    "Phone": "",
+    "Website": "",
+    "Address": "1st Floor, Pandey Complex, NH 33, opp. Pitambara Palace, Booty, Krishna Pura, Ohdar Village, Ranchi, Dumardaga, Jharkhand 834012",
+    "Maps URL": "https://www.google.com/maps/place/D%26D+Beauty+Professional+Salon/@23.4015941,85.3525137,14z/data=!3m1!5s0x39f4e3847a42f3e7:0x8493630b481e712d!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e3256bb375eb:0xde70126f0b5bea61!8m2!3d23.4015941!4d85.3906225!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDW1ha2V1cF9hcnRpc3TgAQA!16s%2Fg%2F11w98wlbp4?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Campus Ladies Beauty Parlour",
+    "Rating": "4.0 stars",
+    "Reviews": 65,
+    "Phone": "",
+    "Website": "",
+    "Address": "Hazaribagh Rd, near Bata, Tharpakhna, New Barhi Toli, Ranchi, Jharkhand 834001",
+    "Maps URL": "https://www.google.com/maps/place/Campus+Ladies+Beauty+Parlour/@23.3710535,85.2920655,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e10dea3c3ead:0x1160ebf756180d49!8m2!3d23.3710535!4d85.3301743!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbpoBJENoZERTVWhOTUc5blMwVkpRMEZuU1VSbU9VOUlWakYzUlJBQuABAPoBBAgAECw!16s%2Fg%2F11bcdhsjx6?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Fairness LADIES PARLOUR",
+    "Rating": "",
+    "Reviews": "",
+    "Phone": "099344 15720",
+    "Website": "",
+    "Address": "98WJ+VVV, New Area Morabadi (Double Transformer) Ranchi, Ranchi, 834008",
+    "Maps URL": "https://www.google.com/maps/place/Fairness+LADIES+PARLOUR/@23.3710535,85.2920655,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e1379bb39f1b:0x57ff6145d42705b4!8m2!3d23.3972458!4d85.3321869!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbuABAA!16s%2Fg%2F11krpsd41z?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Shubham Mens Parlour",
+    "Rating": "",
+    "Reviews": "",
+    "Phone": "",
+    "Website": "",
+    "Address": "Road, Adalhatu Colony, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/Shubham+Mens+Parlour/@23.3990786,85.2917832,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e1cc1b428005:0xc77833cb8c78ad2!8m2!3d23.3990786!4d85.329892!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBEnVuaXNleF9oYWlyZHJlc3NlcuABAA!16s%2Fg%2F11yxglbx1g?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Elegance Beauty Parlour & Academy",
+    "Rating": "4.8 stars",
+    "Reviews": 58,
+    "Phone": "098357 18696",
+    "Website": "https://sites.google.com/view/elegance-beauty-naturals/home",
+    "Address": "Shop No-3, Piska More, Kanti Market, Ratu Rd, near Chandni Dry Cleaners, Piska Mod, Kumhartoli, Ranchi, Jharkhand 834001",
+    "Maps URL": "https://www.google.com/maps/place/Elegance+Beauty+Parlour+%26+Academy/@23.3816541,85.259312,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e0ee697acaab:0xa49c8958b5ff1f19!8m2!3d23.3816541!4d85.2974208!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbpoBI0NoWkRTVWhOTUc5blMwVkpRMEZuU1VSRWVHTlllbGRSRUFF4AEA-gEECAAQSA!16s%2Fg%2F11cn5r8b7y?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "DREAM MENS PARLOUR",
+    "Rating": "3.3 stars",
+    "Reviews": 4,
+    "Phone": "090063 90248",
+    "Website": "",
+    "Address": "Old Bazar, Tetartoli, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/DREAM+MENS+PARLOUR/@23.3991237,85.2980875,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e148786802a5:0x26d848d931918de8!8m2!3d23.3991237!4d85.3361963!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBCmhhaXJfc2Fsb27gAQA!16s%2Fg%2F11bccghkzq?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Manapreet's Beauty Looks",
+    "Rating": "",
+    "Reviews": "",
+    "Phone": "096087 64717",
+    "Website": "",
+    "Address": "98VM+4VR, Harihar Singh Road, Morabadi, Ranchi, Jharkhand 834009",
+    "Maps URL": "https://www.google.com/maps/place/Manapreet's+Beauty+Looks/@23.3991237,85.2980875,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e1477b8ef899:0x40416b8de2872766!8m2!3d23.3928598!4d85.3346505!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbuABAA!16s%2Fg%2F11l65zltph?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Asha Makeup Studio",
+    "Rating": "4.9 stars",
+    "Reviews": 77,
+    "Phone": "099310 37737",
+    "Website": "https://ashamakeupstudio.com/",
+    "Address": "1st Floor, beside DTDC Courier, Upper Chutia, Kathartoli, Ranchi, Jharkhand 834011",
+    "Maps URL": "https://www.google.com/maps/place/Asha+Makeup+Studio/@23.3534486,85.3033229,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e1a224d5967d:0x13e873612047fd87!8m2!3d23.3534486!4d85.3414317!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbuABAA!16s%2Fg%2F11c2l9t86_?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "AASTHA BEAUTY PARLOUR",
+    "Rating": "",
+    "Reviews": "",
+    "Phone": "",
+    "Website": "",
+    "Address": "Prahlad Enclave, Chiraundi, Morabadi, Ranchi, Jharkhand 834006",
+    "Maps URL": "https://www.google.com/maps/place/AASTHA+BEAUTY+PARLOUR/@23.4122718,85.304282,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e6b24e76cc47:0x78b1fe541c728117!8m2!3d23.4122718!4d85.3423908!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbuABAA!16s%2Fg%2F11vj3glvzs?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Barber shop",
+    "Rating": "5.0 stars",
+    "Reviews": 1,
+    "Phone": "082525 37078",
+    "Website": "",
+    "Address": "Harihar Singh Road, Soren Kunj, Morabadi, Ranchi, Jharkhand 834009",
+    "Maps URL": "https://www.google.com/maps/place/Barber+shop/@23.4122718,85.304282,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e1dd0957d805:0xbf7d02a717dad1ba!8m2!3d23.3931745!4d85.3371179!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBC2JhcmJlcl9zaG9wmgEjQ2haRFNVaE5NRzluUzBWSlEwRm5TVVF6WjNKTWVVMW5FQUXgAQD6AQQIABAN!16s%2Fg%2F11y8tyybp1?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Karishma Beauty Salon",
+    "Rating": "4.3 stars",
+    "Reviews": 24,
+    "Phone": "088770 00102",
+    "Website": "http://www.karishmabeautysalon.com/",
+    "Address": "98QR+M2V, Bariatu Rd, Morabadi, Ranchi, Jharkhand 834009",
+    "Maps URL": "https://www.google.com/maps/place/Karishma+Beauty+Salon/@23.4122718,85.304282,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e143e7cd0107:0x6c117381f63b8e0b!8m2!3d23.3892377!4d85.3400611!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbpoBRENpOURRVWxSUVVOdlpFTm9kSGxqUmpsdlQyNUtRbEV6U25OVFZWRXlVVmRLZVZneFpFaFdiWEJLVmtWRk0xSlZSUkFC4AEA-gEECAAQNQ!16s%2Fg%2F11gdkn4g7f?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Beauty Affair",
+    "Rating": "4.8 stars",
+    "Reviews": 12,
+    "Phone": "092636 95241",
+    "Website": "https://wa.me/917482932112",
+    "Address": "Mahatma Gandhi Main Rd, beside Panjab sweets, Hindpiri, Ranchi, Jharkhand 834001",
+    "Maps URL": "https://www.google.com/maps/place/Beauty+Affair/@23.3570663,85.2866026,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e183e2637f5d:0xf0d4063d8526496b!8m2!3d23.3570663!4d85.3247114!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBA3NwYZoBI0NoWkRTVWhOTUc5blMwVkpRMEZuU1VOT2VEVTNVV1ZCRUFF4AEA-gEECAAQJw!16s%2Fg%2F11vpp22t6d?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Amber Hair Studio & Spa",
+    "Rating": "4.9 stars 11 Reviews",
+    "Reviews": 11,
+    "Phone": "097982 31909",
+    "Website": "",
+    "Address": "C82H+3R5, Adalhatu Rd, Tetartoli, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/Amber+Hair+Studio+%26+Spa/@23.4001346,85.2915079,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e136cefd8f8b:0x576e5e7ca941aecc!8m2!3d23.4001346!4d85.3296167!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBCmhhaXJfc2Fsb27gAQA!16s%2Fg%2F11v5yt75j9?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Divya beauty Parlour (Makeup Artist & Beautician)",
+    "Rating": "4.7 stars",
+    "Reviews": 10,
+    "Phone": "083407 15346",
+    "Website": "",
+    "Address": "Road No 2, Badh Gari, Deepatoli, Jai Prakash Nagar, Ranchi, Jharkhand 834012",
+    "Maps URL": "https://www.google.com/maps/place/Divya+beauty+Parlour+(Makeup+Artist+%26+Beautician)/@23.3881292,85.3320289,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e3b19ab01f0b:0xec7f15351c3532de!8m2!3d23.3881292!4d85.3701377!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbpoBRENpOURRVWxSUVVOdlpFTm9kSGxqUmpsdlQyNVdabGxWYkhoVFZWWnBWakZPZEU1cVRuaGlNREZ3VGxWR1RXUnVZeEFC4AEA-gEECAAQHg!16s%2Fg%2F11l5h0vgh6?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Lavish beauty salon",
+    "Rating": "4.8 stars",
+    "Reviews": 80,
+    "Phone": "093041 04829",
+    "Website": "",
+    "Address": "Sadanand Shahdeo complex, Kathal more chowk, opp. Rajdhani Tiles, Ranchi, Jharkhand 835303",
+    "Maps URL": "https://www.google.com/maps/place/Lavish+beauty+salon/@23.3632962,85.2130823,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4dff8792a6041:0x7dc33e7fab78484f!8m2!3d23.3632962!4d85.2511911!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbpoBI0NoWkRTVWhOTUc5blMwVkpRMEZuVFVOUmNXVmZkR1puRUFF4AEA-gEFCKMCEEo!16s%2Fg%2F11fm73y0hs?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "RUSY à Laurent:RUSSIAN-THAI Best spa in RANCHI",
+    "Rating": "4.0 stars",
+    "Reviews": 193,
+    "Phone": "088771 77776",
+    "Website": "http://www.rusyspa.com/",
+    "Address": "1st floor, Circular Rd, Lalpur, Ranchi, Jharkhand 834001",
+    "Maps URL": "https://www.google.com/maps/place/RUSY+%C3%A0+Laurent:RUSSIAN-THAI+Best+spa+in+RANCHI/@23.3773863,85.2935178,14z/data=!3m1!5s0x39f4e1aa323f0c59:0x41e618c06a144883!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e15957798bbf:0xbbba9911fc09b859!8m2!3d23.3773863!4d85.3316266!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBC21hc3NhZ2Vfc3BhmgFEQ2k5RFFVbFJRVU52WkVOb2RIbGpSamx2VDJ4d01WTnVTbWhoTTBaaFUyMWthbU50V2pSVVZHTXhXVEEwTWxVeFJSQULgAQD6AQQIABA5!16s%2Fg%2F11nyn5lgbp?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "The Bae Spa",
+    "Rating": "4.5 stars",
+    "Reviews": 78,
+    "Phone": "093411 70093",
+    "Website": "https://thebaespa.in/",
+    "Address": "6th Floor, Mall De Cor, Lalpur Chowk, Jharkhand 834001",
+    "Maps URL": "https://www.google.com/maps/place/The+Bae+Spa/@23.3773863,85.2935178,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e150bc852ec9:0x1d245be1f4e8258!8m2!3d23.3719322!4d85.3380036!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBA3NwYeABAA!16s%2Fg%2F11rsk7kls_?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Rose Herbal Beauty Parlour",
+    "Rating": "4.1 stars",
+    "Reviews": 17,
+    "Phone": "090319 16331",
+    "Website": "",
+    "Address": "A 122, Bariatu Rd, Muharram Toli, Jai Prakash Nagar, Ranchi, Jharkhand 834012",
+    "Maps URL": "https://www.google.com/maps/place/Rose+Herbal+Beauty+Parlour/@23.4004716,85.3319912,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e3f178d10239:0x5966ee2db5e0ef98!8m2!3d23.4004716!4d85.3701!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbuABAA!16s%2Fg%2F11f__2fhvc?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "RS UNISEX SALON AND SPA",
+    "Rating": "5.0 stars",
+    "Reviews": 3,
+    "Phone": "",
+    "Website": "https://www.instagram.com/rs_unisex_salon_spa?igsh=YzRrbmw3dmkwdTVh",
+    "Address": "1st floor, Ammogh complex, Hazaribagh Rd, near Indian oil petrolpump, Tharpakhna, Ranchi, Jharkhand 834001",
+    "Maps URL": "https://www.google.com/maps/place/RS+UNISEX+SALON+AND+SPA/@23.3714901,85.2903134,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e12d543de969:0xce23b68b43e6b3e1!8m2!3d23.3714901!4d85.3284222!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBA3NwYZoBRENpOURRVWxSUVVOdlpFTm9kSGxqUmpsdlQyeHNTMU5XWkZKWU1VSnlWVlV4UjAxWGJEVlJiRnAxVmtoR1ZsUnJSUkFC4AEA-gEECAAQMA!16s%2Fg%2F11xyvgz0lq?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "The Blue Heaven Ladies Beauty Parlour",
+    "Rating": "4.4 stars",
+    "Reviews": 26,
+    "Phone": "086749 44122",
+    "Website": "",
+    "Address": "Samlong Road Near Shivalaya Apartment, Samlong, Ranchi, Jharkhand 834010",
+    "Maps URL": "https://www.google.com/maps/place/The+Blue+Heaven+Ladies+Beauty+Parlour/@23.3714901,85.2903134,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e18079791acd:0xaaa655b2d7c81101!8m2!3d23.3588736!4d85.354591!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbpoBI0NoWkRTVWhOTUc5blMwVkpRMEZuU1VRdGVFMVVUMGxSRUFF4AEA-gEECAAQOg!16s%2Fg%2F11dymqgrdg?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "GO GREEN SALADS",
+    "Rating": "5.0 stars",
+    "Reviews": 19,
+    "Phone": "",
+    "Website": "",
+    "Address": "near oxygen park, opposite Football Stadium, Tetartoli, Morabadi, Ranchi, Jharkhand 834009",
+    "Maps URL": "https://www.google.com/maps/place/GO+GREEN+SALADS/@23.3714901,85.2903134,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e1d70dac677b:0x6116e592bd972196!8m2!3d23.3921515!4d85.3271123!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBCnNhbGFkX3Nob3DgAQA!16s%2Fg%2F11yw9q18l1?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Life Style Nextgen Unisex Salon",
+    "Rating": "3.8 stars",
+    "Reviews": 13,
+    "Phone": "094311 01252",
+    "Website": "",
+    "Address": "Nile Complex, Old Hazaribagh Rd, Bargaon, Kantatoli, Shanti Nagar, Ranchi, Jharkhand 834001",
+    "Maps URL": "https://www.google.com/maps/place/Life+Style+Nextgen+Unisex+Salon/@23.3714901,85.2903134,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e1a569c7bc5f:0x9ab507fa09d99a19!8m2!3d23.3671207!4d85.3488296!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbpoBI0NoWkRTVWhOTUc5blMwVkpRMEZuU1VOcU1YSnhVMUZSRUFF4AEA-gEECAAQFg!16s%2Fg%2F11vdsh207f?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Kareena Beauty Parlour",
+    "Rating": "3.0 stars",
+    "Reviews": 1,
+    "Phone": "088099 40169",
+    "Website": "",
+    "Address": "near Taigore Hill, Van Vrindavan Colony, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/Kareena+Beauty+Parlour/@23.4003803,85.3005548,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e1766004b8cf:0xa3487a4aa83826df!8m2!3d23.4003803!4d85.3386636!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbpoBJENoZERTVWhOTUc5blMwVkpRMEZuU1VOMU9GcDJSbkpSUlJBQuABAPoBBAgAEBA!16s%2Fg%2F11swwq4pyv?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "The Ocean Relax Spa",
+    "Rating": "3.9 stars",
+    "Reviews": 87,
+    "Phone": "093991 47445",
+    "Website": "",
+    "Address": "2nd Floor, East Jail Road, Lalpur, Ranchi, Jharkhand 834001",
+    "Maps URL": "https://www.google.com/maps/place/The+Ocean+Relax+Spa/@23.4003803,85.3005548,14z/data=!3m1!5s0x39f4e1aa323f0c59:0xb0f9a216d8ebea23!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e1139f6828bd:0x60eef2077aa580d7!8m2!3d23.3773944!4d85.3315918!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBA3NwYZoBJENoZERTVWhOTUc5blMwVkpRMEZuU1VRMVozRXpaekozUlJBQuABAPoBBAgAEBs!16s%2Fg%2F11hd1s2v75?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "De Radiance Salon & Tattoos",
+    "Rating": "4.8 stars",
+    "Reviews": 45,
+    "Phone": "090652 61691",
+    "Website": "http://www.de-radiancesalon.com/",
+    "Address": "Rajmani complex, 1st Floor, Road no 14, Khunti - Chaibasa Rd, Hawai Nagar, Ranchi, Jharkhand 834003",
+    "Maps URL": "https://www.google.com/maps/place/De+Radiance+Salon+%26+Tattoos/@23.3121407,85.2795574,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f51fdd22305b45:0x34d457b450a229bc!8m2!3d23.3121407!4d85.3176662!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDW1ha2V1cF9hcnRpc3TgAQA!16s%2Fg%2F11wfhrflyj?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "The Hair Bar Salon",
+    "Rating": "4.8 stars",
+    "Reviews": 49,
+    "Phone": "",
+    "Website": "https://www.thbsalon.in/",
+    "Address": "Kamlakant Road, Pahari Mandir Lane, Ratu Rd, near Pahari mandir, Ranchi, Jharkhand 834001",
+    "Maps URL": "https://www.google.com/maps/place/The+Hair+Bar+Salon/@23.3784793,85.2740854,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e1a88cdef465:0x2af49497af4810d5!8m2!3d23.3784793!4d85.3121942!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbpoBJENoZERTVWhOTUc5blMwVkpRMEZuU1VRM2NXOTVYeTFuUlJBQuABAPoBBAgAEEE!16s%2Fg%2F11y22s_w6_?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "The Beauty Heaven",
+    "Rating": "",
+    "Reviews": "",
+    "Phone": "",
+    "Website": "",
+    "Address": "Krishna Enclave, Rabindra Nagar, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/The+Beauty+Heaven/@23.416466,85.2876002,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e6ce4e8252db:0x305a0f0ae8808ebe!8m2!3d23.416466!4d85.325709!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbuABAA!16s%2Fg%2F11xp6t_k67?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "AASHITA DENTAL CARE -Dr. Priyanka - Dentist in Ranchi",
+    "Rating": "4.9 stars",
+    "Reviews": 258,
+    "Phone": "093041 26584",
+    "Website": "http://aashitadentalcare.com/",
+    "Address": "shop no.-11, Menki complex, Tagore Hill Rd, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/AASHITA+DENTAL+CARE+-Dr.+Priyanka+-+Dentist+in+Ranchi/@23.416466,85.2876002,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e100614bfcfd:0xb5f5159c1b9f58fb!8m2!3d23.4045981!4d85.3410331!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDWRlbnRhbF9jbGluaWPgAQA!16s%2Fg%2F11vynwvbl0?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "The Beautifly Garden Salon or Parlour for BOYS & GIRLS seperately and Cosmetic/Artificial Jewellery Shop",
+    "Rating": "4.0 stars",
+    "Reviews": 4,
+    "Phone": "080842 92423",
+    "Website": "",
+    "Address": "Chowk, near Gangour Sweet, Deepatoli, Khelgaon, Ranchi, Jharkhand 834012",
+    "Maps URL": "https://www.google.com/maps/place/The+Beautifly+Garden+Salon+or+Parlour+for+BOYS+%26+GIRLS+seperately+and+Cosmetic%2FArtificial+Jewellery+Shop/@23.388509,85.3370907,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e367620cbc89:0x965facd69817a8b4!8m2!3d23.388509!4d85.3751995!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbuABAA!16s%2Fg%2F11s4bxx238?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Beauty World salon & Training centre",
+    "Rating": "4.8 stars",
+    "Reviews": 116,
+    "Phone": "082714 48680",
+    "Website": "",
+    "Address": "B.I.T. more, Jharkhand 835217",
+    "Maps URL": "https://www.google.com/maps/place/Beauty+World+salon+%26+Training+centre/@23.4264778,85.3736625,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e593333c6d5f:0x354678d5838d17b8!8m2!3d23.4264778!4d85.4117713!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbpoBJENoZERTVWhOTUc5blMwVkpRMEZuU1VOTWRtWnFNWFozUlJBQuABAPoBBAgAECQ!16s%2Fg%2F11fm5fhvtt?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Surabhi Beauty Parlour",
+    "Rating": "4.3 stars",
+    "Reviews": 35,
+    "Phone": "098353 28881",
+    "Website": "http://www.surabhibeautyparlour.in/",
+    "Address": "Piska More, Ratu Rd, Dayal Nagar, Ranchi, Kamre, Jharkhand 835222",
+    "Maps URL": "https://www.google.com/maps/place/Surabhi+Beauty+Parlour/@23.3949037,85.2261337,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e0ea052cffa3:0x95b46f5ecef18865!8m2!3d23.3949037!4d85.2642425!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDGJlYXV0eV9zYWxvbpoBI0NoWkRTVWhOTUc5blMwVkpRMEZuU1VReWIwazJRVmhuRUFF4AEA-gEECAAQPg!16s%2Fg%2F11f1wzgwwt?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Unnati Cosmatic and Gift shop Adhalhatu Morabadi Ranchi",
+    "Rating": "5.0 stars",
+    "Reviews": 3,
+    "Phone": "",
+    "Website": "",
+    "Address": "beside Gauri Residency, Adalhatu Colony, Adalhatu, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/Unnati+Cosmatic+and+Gift+shop+Adhalhatu+Morabadi+Ranchi/@23.4099099,85.2917232,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e76b545744d7:0x112377aba7217a41!8m2!3d23.4099099!4d85.329832!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBD2Nvc21ldGljc19zdG9yZZoBJENoZERTVWhOTUc5blMwVkpRMEZuVFVOdmEwNXhkVzFuUlJBQuABAPoBBAgAEDw!16s%2Fg%2F11y27c54yt?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Wellness and lifestyle centre",
+    "Rating": "5.0 stars",
+    "Reviews": 1,
+    "Phone": "073495 24605",
+    "Website": "",
+    "Address": "Tetartoli, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/Wellness+and+lifestyle+centre/@23.4099099,85.2917232,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e108a4e3d143:0x20b98c10cf8a9f6b!8m2!3d23.3994901!4d85.3322463!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBD3dlbGxuZXNzX2NlbnRlcuABAA!16s%2Fg%2F11k56pys7y?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "PULSE & POWER ZUMBA DANCE &YOGA",
+    "Rating": "5.0 stars",
+    "Reviews": 17,
+    "Phone": "084091 65272",
+    "Website": "",
+    "Address": "ground floor, Jagdish and saraswati house, 149/d, Tagore Hill Rd, opposite Empire building, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/PULSE+%26+POWER+ZUMBA+DANCE+%26YOGA/@23.4099099,85.2917232,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e1595dcc9b25:0xb3bb3e8e28a262d9!8m2!3d23.3971523!4d85.336927!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBDmZpdG5lc3NfY2VudGVymgFEQ2k5RFFVbFJRVU52WkVOb2RIbGpSamx2VDJ0b2NtRldZek5ZTURsUFVYcG9iVlJWZEROVmFsSk9ZVmRzTUZOclJSQULgAQD6AQQISRBL!16s%2Fg%2F11yqsy3dwn?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "La Belle Spa",
+    "Rating": "4.9 stars",
+    "Reviews": 20,
+    "Phone": "",
+    "Website": "",
+    "Address": "3rd floor, Panchratna Galaxy, 304, Circular Rd, above Kalyan Jewellers, P&T Colony, Lalpur, Ranchi, Jharkhand 834001",
+    "Maps URL": "https://www.google.com/maps/place/La+Belle+Spa/@23.3768721,85.2938249,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e1d5fb2c6833:0x8856c45516fb18a6!8m2!3d23.3768721!4d85.3319337!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBE3NwYV9hbmRfaGVhbHRoX2NsdWLgAQA!16s%2Fg%2F11xz45rmrc?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "The Spa Story (VS Wellness Ent) : Best Thai Spa in Ranchi : Best Massage Centre in Ranchi",
+    "Rating": "4.2 stars",
+    "Reviews": 22,
+    "Phone": "098357 38080",
+    "Website": "http://www.thespastoryranchi.in/",
+    "Address": "panchratna galleria, Sarjana Chowk Main Rd, above V2 Mall, Pathalkudwa, Nayatoli, Ranchi, Jharkhand 834001",
+    "Maps URL": "https://www.google.com/maps/place/The+Spa+Story+(VS+Wellness+Ent)+:+Best+Thai+Spa+in+Ranchi+:+Best+Massage+Centre+in+Ranchi/@23.3768721,85.2938249,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x22fe0afa93d008c3:0xfa040b4f6df389f1!8m2!3d23.3679062!4d85.325084!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBA3NwYeABAA!16s%2Fg%2F11tfn0p7jt?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Upasya Ayurveda- Best Ayurvedic treatment in Ranchi",
+    "Rating": "4.8 stars",
+    "Reviews": 74,
+    "Phone": "093116 06700",
+    "Website": "https://www.upasyaayurveda.com/",
+    "Address": "Antu Chowk, Morabadi, Dutta Villa Road, New, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/Upasya+Ayurveda-+Best+Ayurvedic+treatment+in+Ranchi/@23.3768721,85.2938249,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e1ef697eef51:0x4d52c48d620e1218!8m2!3d23.3956345!4d85.3351461!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaVolIiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBIWFsdGVybmF0aXZlX21lZGljaW5lX3ByYWN0aXRpb25lcuABAA!16s%2Fg%2F11fsls2crz?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "Punam Shringar Store",
+    "Rating": "",
+    "Reviews": "",
+    "Phone": "",
+    "Website": "",
+    "Address": "Harihar Singh Road, near SBI ATM, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/Punam+Shringar+Store/@23.3768721,85.2938249,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e13e2226cb67:0x70306fef2b632378!8m2!3d23.3926889!4d85.3382995!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBD2Nvc21ldGljc19zdG9yZeABAA!16s%2Fg%2F11z0wycw2d?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  },
+  {
+    "Name": "NISHA BEAUTY SHOPS",
+    "Rating": "",
+    "Reviews": "",
+    "Phone": "090823 03484",
+    "Website": "",
+    "Address": "near Oxygen Park, Ranchi University, Morabadi, Ranchi, Jharkhand 834008",
+    "Maps URL": "https://www.google.com/maps/place/NISHA+BEAUTY+SHOPS/@23.3768721,85.2938249,14z/data=!4m11!1m3!2m2!1sbeauty+parlour+near+morabadi+ranchi!6e1!3m6!1s0x39f4e1c55ae27c6d:0x8a3be152c9454945!8m2!3d23.390839!4d85.3260396!15sCiNiZWF1dHkgcGFybG91ciBuZWFyIG1vcmFiYWRpIHJhbmNoaZIBD2Nvc21ldGljc19zdG9yZeABAA!16s%2Fg%2F11yg96l1pm?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D"
+  }
+]
+
+let current=0
+
+function loadLead(){
+
+let l=leads[current]
+
+leadname.innerText=l.Name
+phone.innerText=l.Phone
+rating.innerText=l.Rating
+reviews.innerText=l.Reviews
+address.innerText=l.Address
+//let phone = l.Phone.replace(/\s+/g,'').replace(/^0+/,'');
+callbtn.href = "tel:" + l.Phone.replace(/\s+/g,'').replace(/^0+/,'');
+
+
+maps.href=l.maps
+
+if(l.Website){
+website.href=l.Website
+website.innerText=l.Website
+}else{
+website.innerText="No website"
+website.removeAttribute("href")
+}
+
+let s=localStorage.getItem("lead_"+current) || "Not Called"
+
+status.innerText="Status: "+s
+progress.innerText=(current+1)+" / "+leads.length
+
+}
+
+function nextLead(){
+
+if(current<leads.length-1){
+current++
+loadLead()
+}
+
+}
+
+function prevLead(){
+
+if(current>0){
+current--
+loadLead()
+}
+
+}
+
+function setStatus(s){
+
+localStorage.setItem("lead_"+current,s)
+loadLead()
+
+}
+
+loadLead()
+
+</script>
+
+</body>
+</html>
