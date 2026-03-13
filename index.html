@@ -9,30 +9,37 @@ body{
 font-family:Arial;
 background:#f4f6f9;
 margin:0;
-padding:15px;
-text-align:center;
+padding:0;
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
 }
+
+/* FULL SCREEN CARD */
 
 .card{
 background:white;
+width:100%;
 max-width:600px;
-margin:auto;
+height:100vh;
 padding:20px;
-border-radius:12px;
-box-shadow:0 10px 20px rgba(0,0,0,0.1);
+box-sizing:border-box;
+
+display:flex;
+flex-direction:column;
+justify-content:space-between;
+
+border-radius:0;
+}
+
+h2{
+font-size:22px;
+margin-bottom:10px;
 }
 
 .field{
-margin:10px 0;
-font-size:16px;
-}
-
-button{
-padding:12px 18px;
-margin:6px;
-border:none;
-border-radius:8px;
-cursor:pointer;
+margin:6px 0;
 font-size:16px;
 }
 
@@ -42,61 +49,67 @@ font-size:16px;
 background:#27ae60;
 color:white;
 width:100%;
-font-size:22px;
-padding:18px;
+font-size:26px;
+padding:22px;
+border:none;
+border-radius:10px;
 font-weight:bold;
-border-radius:12px;
 }
 
-/* navigation buttons */
+/* NAVIGATION */
+
+.nav{
+display:flex;
+gap:10px;
+}
 
 .prev{
 background:#95a5a6;
 color:white;
-width:45%;
+flex:1;
 }
 
 .next{
 background:#3498db;
 color:white;
-width:45%;
+flex:1;
 }
 
-/* status buttons */
+/* STATUS */
 
-.called{background:#27ae60;color:white}
-.notint{background:#e74c3c;color:white}
-.follow{background:#f39c12;color:white}
+.statusbuttons{
+display:flex;
+gap:10px;
+margin-top:10px;
+}
+
+.called{background:#27ae60;color:white;flex:1}
+.notint{background:#e74c3c;color:white;flex:1}
+.follow{background:#f39c12;color:white;flex:1}
+
+button{
+padding:14px;
+border:none;
+border-radius:8px;
+font-size:16px;
+cursor:pointer;
+}
 
 .status{
-margin-top:15px;
+margin-top:10px;
 font-weight:bold;
 font-size:18px;
 }
 
-/* mobile optimization */
+/* DESKTOP */
 
-@media (max-width:600px){
+@media (min-width:700px){
 
 .card{
-padding:15px;
-}
-
-h2{
-font-size:20px;
-}
-
-.field{
-font-size:15px;
-}
-
-.call{
-font-size:24px;
-padding:20px;
-}
-
-button{
-font-size:16px;
+height:auto;
+margin:40px auto;
+border-radius:12px;
+box-shadow:0 10px 20px rgba(0,0,0,0.15);
 }
 
 
@@ -121,16 +134,16 @@ font-size:16px;
 <button class="call">📞 CALL NOW</button>
 </a>
 <br><br>
+<div class="nav">
+<button class="prev" onclick="prevLead()">⬅ Prev</button>
+<button class="next" onclick="nextLead()">Next ➡</button>
+</div>
 
-<button class="prev" onclick="prevLead()">Prev</button>
-<button class="next" onclick="nextLead()">Next</button>
-
-<br><br>
-
+<div class="statusbuttons">
 <button class="called" onclick="setStatus('Called')">Called</button>
 <button class="notint" onclick="setStatus('Not Interested')">Not Interested</button>
 <button class="follow" onclick="setStatus('Follow Up')">Follow Up</button>
-
+</div>
 <div class="status" id="status"></div>
 <div id="progress"></div>
 
