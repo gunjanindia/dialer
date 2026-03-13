@@ -1051,8 +1051,7 @@ address.innerText=l.Address
 callbtn.href = "tel:" + l.Phone.replace(/\s+/g,'').replace(/^0+/,'');
 
 
-maps.href=l.maps
-
+maps.href=l["Maps URL"];
 if(l.Website){
 website.href=l.Website
 website.innerText=l.Website
